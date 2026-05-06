@@ -92,7 +92,7 @@ public class DBRow : Dictionary<string, string>
     {
         return this;
     }
- 
+
 }
 public class DBList : List<DBRow>
 {
@@ -610,7 +610,7 @@ public class DB : IDisposable
             {
                 DBTYPE_SQLSRV => "SELECT DATENAME(TZOFFSET, SYSDATETIMEOFFSET())",
 #if isMySQL
-                DBTYPE_MYSQL => "SELECT TIME_FORMAT(TIMEDIFF(NOW(), UTC_TIMESTAMP), '%H:%i')", 
+                DBTYPE_MYSQL => "SELECT TIME_FORMAT(TIMEDIFF(NOW(), UTC_TIMESTAMP), '%H:%i')",
 #endif
                 _ => "",
             };
@@ -1079,7 +1079,13 @@ public class DB : IDisposable
                 }
                 else
                 {
-                    dt = convertDbDateTimeToUtc(dt);
+                    // "_utc" field name suffix convention, don't convert if the field already stores UTC date
+                    // Used in Cron Service which operates dates in UTC only
+                    if (!dbread.GetName(i).EndsWith("_utc"))
+                    {
+                        dt = convertDbDateTimeToUtc(dt);
+                    }
+
                     value = dt.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.DateTimeFormatInfo.InvariantInfo);
                 }
             }
@@ -1138,7 +1144,7 @@ public class DB : IDisposable
     }
 
     /// <summary>
-    /// read signle irst row using table/where/orderby with generic type
+    /// read single first row using table/where/orderby with generic type
     /// </summary>
     /// <param name="table"></param>
     /// <param name="where"></param>
@@ -1319,7 +1325,7 @@ public class DB : IDisposable
         //TODO rework with limit() method
         if (offset_method == "FETCH NEXT") // for SQL Server 2012+
         {
-            var sql = "SELECT " + fields + " FROM " + from + " WHERE " + where + " ORDER BY " + orderby + " OFFSET " + offset + " ROWS " + " FETCH NEXT " + limit + " ROWS ONLY";
+            var sql = "SELECT " + fields + " FROM " + from + " WHERE " + where + " ORDER BY " + orderby + " OFFSET " + offset + " ROWS " + (limit > 0 ? " FETCH NEXT " + limit + " ROWS ONLY" : "");
             result = this.arrayp(sql, where_params);
         }
         else if (limit_method == "LIMIT") // MySQL, DB2
@@ -1581,7 +1587,7 @@ public class DB : IDisposable
             parts[i] = $"{startQuote}{part}{endQuote}";
         }
 
-        // Join the parts back together with '.' 
+        // Join the parts back together with '.'
         return string.Join(".", parts);
     }
 
