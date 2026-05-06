@@ -150,3 +150,8 @@ VALUES ('In queue', 'Created and placed in queue', 'queue'),
        ('Schedulled', 'In queue but with schedule date', 'schedule'),
        ('Error', 'In queue, but there was with errors', 'error'),
        ('Failed', 'Cancelled because attempts have run out', 'failed');
+
+INSERT INTO log_types (itype, icode, iname)
+  VALUES (0, 'notification_sent', 'Notification Sent'),
+         (0, 'notification_queue', 'Notification Added To Queue'),
+         (0, 'notification_canceled', 'Notification Canceled');
